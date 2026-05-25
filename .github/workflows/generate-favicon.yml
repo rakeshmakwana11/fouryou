@@ -1,0 +1,35 @@
+name: Generate Favicon ICO
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'image/favicon.svg'
+      - '.github/workflows/generate-favicon.yml'
+  workflow_dispatch:
+
+jobs:
+  generate-favicon:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y imagemagick
+
+      - name: Generate favicon.ico from SVG
+        run: |
+          convert -background none image/favicon.svg -define icon:auto-resize=64,48,32,16 image/favicon.ico
+
+      - name: Commit favicon.ico
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add image/favicon.ico
+          git diff --staged --quiet || git commit -m "Auto-generate favicon.ico from favicon.svg"
+          git push
